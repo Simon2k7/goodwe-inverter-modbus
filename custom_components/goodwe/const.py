@@ -21,11 +21,18 @@ DEFAULT_NETWORK_RETRIES = 10
 DEFAULT_NETWORK_TIMEOUT = 1
 DEFAULT_MODBUS_ID = 0
 
+# Validation configuration
+DEFAULT_ENABLE_VALIDATION = True
+DEFAULT_OUTLIER_SENSITIVITY = 5.0
+
 CONF_KEEP_ALIVE = "keep_alive"
 CONF_MODEL_FAMILY = "model_family"
 CONF_NETWORK_RETRIES = "network_retries"
 CONF_NETWORK_TIMEOUT = "network_timeout"
 CONF_MODBUS_ID = "modbus_id"
+CONF_ENABLE_VALIDATION = "enable_validation"
+CONF_OUTLIER_SENSITIVITY = "outlier_sensitivity"
+CONF_CUSTOM_RANGES = "custom_ranges"
 
 SERVICE_GET_PARAMETER = "get_parameter"
 SERVICE_SET_PARAMETER = "set_parameter"

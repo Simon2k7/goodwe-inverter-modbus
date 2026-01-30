@@ -107,7 +107,13 @@
                     "model_family": "Protocol Family [ET|DT|ES]",
                     "scan_interval": "Scan interval (s)",
                     "network_retries": "Network retry attempts",
-                    "network_timeout": "Network request timeout (s)"
+                    "network_timeout": "Network request timeout (s)",
+                    "enable_validation": "Enable sensor value validation",
+                    "outlier_sensitivity": "Outlier detection sensitivity (1-20)"
+                },
+                "data_description": {
+                    "enable_validation": "Filter out unrealistic sensor values (Modbus errors, out-of-range values, outliers)",
+                    "outlier_sensitivity": "Higher values = more tolerant of value spikes. Default: 5"
                 },
                 "description": "Specify optional (network) settings",
                 "title": "GoodWe optional settings"

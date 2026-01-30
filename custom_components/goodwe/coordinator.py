@@ -18,7 +18,15 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from .const import DEFAULT_SCAN_INTERVAL
+from .const import (
+    CONF_CUSTOM_RANGES,
+    CONF_ENABLE_VALIDATION,
+    CONF_OUTLIER_SENSITIVITY,
+    DEFAULT_ENABLE_VALIDATION,
+    DEFAULT_OUTLIER_SENSITIVITY,
+    DEFAULT_SCAN_INTERVAL,
+)
+from .validators import SensorValidator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,6 +66,21 @@ class GoodweUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.inverter: Inverter = inverter
         self._last_data: dict[str, Any] = {}
         self._polled_entities: dict[BaseCoordinatorEntity, datetime] = {}
+        
+        # Initialize validator with configuration
+        enable_validation = entry.options.get(
+            CONF_ENABLE_VALIDATION, DEFAULT_ENABLE_VALIDATION
+        )
+        outlier_sensitivity = entry.options.get(
+            CONF_OUTLIER_SENSITIVITY, DEFAULT_OUTLIER_SENSITIVITY
+        )
+        custom_ranges = entry.options.get(CONF_CUSTOM_RANGES, {})
+        
+        self.validator = SensorValidator(
+            enable_validation=enable_validation,
+            outlier_sensitivity=outlier_sensitivity,
+            custom_ranges=custom_ranges,
+        )
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from the inverter."""
@@ -65,7 +88,21 @@ class GoodweUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         try:
             self._last_data = self.data if self.data else {}
-            return await self.inverter.read_runtime_data()
+            raw_data = await self.inverter.read_runtime_data()
+            
+            # Validate sensor values
+            validated_data = self.validator.validate_data(raw_data)
+            
+            # For rejected values, use last known good values if available
+            for sensor_id in raw_data:
+                if sensor_id not in validated_data and sensor_id in self._last_data:
+                    validated_data[sensor_id] = self._last_data[sensor_id]
+                    _LOGGER.debug(
+                        "Using last known value for %s after validation rejection",
+                        sensor_id,
+                    )
+            
+            return validated_data
         except RequestFailedException as ex:
             # UDP communication with inverter is by definition unreliable.
             # It is rather normal in many environments to fail to receive
@@ -102,7 +139,9 @@ class GoodweUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def total_sensor_value(self, sensor: str) -> Any:
         """Answer current value of the 'total' (never 0) sensor."""
         val = self.data.get(sensor)
-        return val if val else self._last_data.get(sensor)
+        # Use 'is not None' to allow legitimate 0 values
+        # Only fallback to last_data if current value is actually None or empty string
+        return val if (val is not None and val != "") else self._last_data.get(sensor)
 
     def reset_sensor(self, sensor: str) -> None:
         """Reset sensor value to 0.

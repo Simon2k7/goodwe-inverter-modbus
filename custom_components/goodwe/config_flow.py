@@ -21,15 +21,19 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_validation as cv
 
 from .const import (
+    CONF_ENABLE_VALIDATION,
     CONF_KEEP_ALIVE,
     CONF_MODBUS_ID,
     CONF_MODEL_FAMILY,
     CONF_NETWORK_RETRIES,
     CONF_NETWORK_TIMEOUT,
+    CONF_OUTLIER_SENSITIVITY,
+    DEFAULT_ENABLE_VALIDATION,
     DEFAULT_MODBUS_ID,
     DEFAULT_NAME,
     DEFAULT_NETWORK_RETRIES,
     DEFAULT_NETWORK_TIMEOUT,
+    DEFAULT_OUTLIER_SENSITIVITY,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
@@ -52,6 +56,10 @@ OPTIONS_SCHEMA = vol.Schema(
         vol.Optional(CONF_MODBUS_ID): int,
         vol.Optional(CONF_NETWORK_RETRIES): cv.positive_int,
         vol.Optional(CONF_NETWORK_TIMEOUT): cv.positive_int,
+        vol.Optional(CONF_ENABLE_VALIDATION): cv.boolean,
+        vol.Optional(CONF_OUTLIER_SENSITIVITY): vol.All(
+            vol.Coerce(float), vol.Range(min=1.0, max=20.0)
+        ),
     }
 )
 
@@ -85,6 +93,12 @@ class OptionsFlowHandler(OptionsFlow):
             CONF_NETWORK_TIMEOUT, DEFAULT_NETWORK_TIMEOUT
         )
         modbus_id = self.entry.options.get(CONF_MODBUS_ID, DEFAULT_MODBUS_ID)
+        enable_validation = self.entry.options.get(
+            CONF_ENABLE_VALIDATION, DEFAULT_ENABLE_VALIDATION
+        )
+        outlier_sensitivity = self.entry.options.get(
+            CONF_OUTLIER_SENSITIVITY, DEFAULT_OUTLIER_SENSITIVITY
+        )
 
         return self.async_show_form(
             step_id="init",
@@ -101,6 +115,8 @@ class OptionsFlowHandler(OptionsFlow):
                     CONF_NETWORK_RETRIES: network_retries,
                     CONF_NETWORK_TIMEOUT: network_timeout,
                     CONF_MODBUS_ID: modbus_id,
+                    CONF_ENABLE_VALIDATION: enable_validation,
+                    CONF_OUTLIER_SENSITIVITY: outlier_sensitivity,
                 },
             ),
         )

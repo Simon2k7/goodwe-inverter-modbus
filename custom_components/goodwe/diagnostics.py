@@ -16,6 +16,7 @@ async def async_get_config_entry_diagnostics(
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
     inverter = config_entry.runtime_data.inverter
+    coordinator = config_entry.runtime_data.coordinator
 
     return {
         "config_entry": config_entry.as_dict(),
@@ -37,6 +38,7 @@ async def async_get_config_entry_diagnostics(
             "modbus_tcp_wo_internet": await _read_register(inverter, 47017),
             "wifi_modbus_tcp_enable": await _read_register(inverter, 47040),
         },
+        "validation": coordinator.validator.get_stats(),
     }
 
 
