@@ -160,10 +160,17 @@ class SensorValidator:
                 if isinstance(value, (int, float)) and not isinstance(value, bool):
                     self._update_history(sensor_id, value)
             else:
-                _LOGGER.debug(
-                    "Rejected value for sensor %s: %s",
+                # Log rejection at warning level for visibility
+                last_rejection = (
+                    self.stats.recent_failures[-1]
+                    if self.stats.recent_failures
+                    else {"reason": "unknown"}
+                )
+                _LOGGER.warning(
+                    "Rejected unrealistic value for sensor %s: %s (reason: %s)",
                     sensor_id,
                     value,
+                    last_rejection.get("reason", "unknown"),
                 )
         
         return validated_data
@@ -278,6 +285,20 @@ class SensorValidator:
         unit: str | None,
     ) -> bool:
         """Validate value is within acceptable range."""
+        # Special handling for energy sensors - should never be negative
+        if unit == "kWh" and value < 0:
+            self.stats.record_rejection(
+                sensor_id,
+                value,
+                f"Negative energy value (kWh cannot be negative)",
+            )
+            _LOGGER.warning(
+                "Rejected negative kWh value for %s: %s",
+                sensor_id,
+                value,
+            )
+            return False
+        
         # Check custom range first
         if sensor_id in self.custom_ranges:
             min_val, max_val = self.custom_ranges[sensor_id]
