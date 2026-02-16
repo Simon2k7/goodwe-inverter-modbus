@@ -259,23 +259,29 @@ class SensorValidator:
         """Get sensor unit from metadata or infer from sensor_id."""
         if sensor_metadata and sensor_id in sensor_metadata:
             return sensor_metadata[sensor_id].get("unit")
-        
+
+        # Exclude bitfield/function sensors from validation
+        if "function" in sensor_id or "_bit" in sensor_id:
+            return None
+
         # Try to infer from common sensor ID patterns
         if "voltage" in sensor_id or sensor_id.startswith("v"):
             return "V"
         if "current" in sensor_id or sensor_id.startswith("i"):
             return "A"
-        if "power" in sensor_id or sensor_id.startswith("p"):
+        # Power sensors: starts with p, contains _p, or contains "power"
+        if "power" in sensor_id or sensor_id.startswith("p") or "_p" in sensor_id:
             return "W"
         if "energy" in sensor_id or sensor_id.startswith("e_"):
             return "kWh"
         if "temp" in sensor_id or "temperature" in sensor_id:
             return "C"
-        if "freq" in sensor_id or sensor_id.startswith("f"):
+        # Frequency sensors: only if contains "freq" or starts with "fgrid"
+        if "freq" in sensor_id or sensor_id.startswith("fgrid"):
             return "Hz"
         if "soc" in sensor_id or "%" in sensor_id:
             return "%"
-        
+
         return None
 
     def _validate_range(
