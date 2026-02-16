@@ -18,8 +18,8 @@ logging.basicConfig(
 )
 
 # Inverter configuration - ADJUST THESE VALUES
-IP_ADDRESS = "192.168.2.14"  # Change to your inverter IP
-PORT = 8899  # 8899 for UDP, 502 for Modbus/TCP
+IP_ADDRESS = "192.168.1.49"  # Change to your inverter IP
+PORT = 502  # 8899 for UDP, 502 for Modbus/TCP
 PROTOCOL = "TCP"  # "UDP" or "TCP"
 FAMILY = "ET"  # One of ET, ES, DT or None to detect automatically
 TIMEOUT = 1

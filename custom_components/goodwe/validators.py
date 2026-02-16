@@ -359,7 +359,14 @@ class SensorValidator:
         """Validate value is not an outlier compared to recent values."""
         if sensor_id not in self._value_history:
             return True
-        
+
+        # Skip outlier detection for power sensors - they legitimately vary from 0 to max
+        # (e.g., PV power is 0 at night, thousands of watts during day)
+        # Range validation already catches truly unrealistic values
+        unit = self._get_sensor_unit(sensor_id, None)
+        if unit in ("W", "VA", "var"):
+            return True
+
         history = self._value_history[sensor_id]
         if len(history) < 3:
             # Not enough history to detect outliers

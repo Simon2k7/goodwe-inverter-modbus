@@ -13,12 +13,12 @@ logging.basicConfig(
 )
 
 # Set the appropriate IP address
-IP_ADDRESS = "192.168.2.14"
+IP_ADDRESS = "192.168.1.49"
 PORT = 8899
 
 FAMILY = "ET"  # One of ET, ES, DT or None to detect inverter family automatically
 COMM_ADDR = None  # Usually 0xf7 for ET/ES or 0x7f for DT, or None for default value
-TIMEOUT = 1
+TIMEOUT = 1 
 RETRIES = 3
 
 inverter = asyncio.run(
