@@ -137,10 +137,10 @@ class GoodweUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         return val if val is not None else self._last_data.get(sensor)
 
     def total_sensor_value(self, sensor: str) -> Any:
-        """Answer current value of the 'total' (never 0) sensor."""
-        val = self.data.get(sensor)
-        # Use 'is not None' to allow legitimate 0 values
-        # Only fallback to last_data if current value is actually None or empty string
+        """Answer current value of the 'total' sensor."""
+        # The validator handles monotonic checking, so we trust validated data
+        # Only fall back to last_data if current value is missing (None or empty)
+        val = self.data.get(sensor) if self.data else None
         return val if (val is not None and val != "") else self._last_data.get(sensor)
 
     def reset_sensor(self, sensor: str) -> None:

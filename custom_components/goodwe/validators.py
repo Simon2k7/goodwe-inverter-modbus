@@ -349,16 +349,47 @@ class SensorValidator:
         
         if sensor_id in self._last_monotonic_values:
             last_value = self._last_monotonic_values[sensor_id]
-            if value < last_value:
+            
+            # Allow small decreases (tolerance for rounding errors or recalibration)
+            # Use 1% of last value or 0.1 kWh, whichever is larger
+            tolerance = max(abs(last_value) * 0.01, 0.1)
+            
+            # Check if value decreased beyond tolerance
+            if value < (last_value - tolerance):
+                # Check for possible inverter reset (value close to 0 or very small)
+                # If value drops to near 0, this likely indicates an inverter reset
+                if value < 1.0:
+                    _LOGGER.info(
+                        "Detected possible inverter reset for %s: %s -> %s, accepting new baseline",
+                        sensor_id,
+                        last_value,
+                        value,
+                    )
+                    self._last_monotonic_values[sensor_id] = value
+                    return True
+                
+                # Check for large drop (>50% decrease) which might indicate reset
+                if value < (last_value * 0.5):
+                    _LOGGER.warning(
+                        "Large decrease detected for %s: %s -> %s (>50%%), possible reset - accepting",
+                        sensor_id,
+                        last_value,
+                        value,
+                    )
+                    self._last_monotonic_values[sensor_id] = value
+                    return True
+                
+                # Normal decrease beyond tolerance - reject
                 self.stats.record_rejection(
                     sensor_id,
                     value,
-                    f"Monotonic sensor decreased from {last_value} to {value}",
+                    f"Monotonic sensor decreased from {last_value} to {value} (beyond tolerance)",
                 )
                 return False
         
-        # Update last known value
-        self._last_monotonic_values[sensor_id] = value
+        # Update last known value (only if value is valid and larger, or first time)
+        if sensor_id not in self._last_monotonic_values or value >= self._last_monotonic_values[sensor_id]:
+            self._last_monotonic_values[sensor_id] = value
         return True
 
     def _validate_outlier(self, sensor_id: str, value: float) -> bool:
