@@ -401,6 +401,10 @@ class SensorValidator:
         # (e.g., PV power is 0 at night, thousands of watts during day)
         # Range validation already catches truly unrealistic values
         unit = self._get_sensor_unit(sensor_id, None)
+        # Daily energy sensors are explicitly reset to 0 and then rise again,
+        # so outlier detection can incorrectly lock them at 0 after midnight.
+        if unit == "kWh" and sensor_id.endswith("_day"):
+            return True
         if unit in ("W", "VA", "var"):
             return True
 
@@ -434,7 +438,7 @@ class SensorValidator:
                 self.stats.record_rejection(
                     sensor_id,
                     value,
-                    f"Outlier: value {value} deviates >5x from mean {mean:.2f}",
+                    f"Outlier: value {value} deviates >{self.outlier_sensitivity}x from mean {mean:.2f}",
                 )
                 return False
         
@@ -450,6 +454,11 @@ class SensorValidator:
         # Keep only recent history
         if len(self._value_history[sensor_id]) > self._max_history:
             self._value_history[sensor_id].pop(0)
+
+    def reset_sensor_tracking(self, sensor_id: str) -> None:
+        """Clear validator tracking for sensors that are explicitly reset."""
+        self._value_history.pop(sensor_id, None)
+        self._last_monotonic_values.pop(sensor_id, None)
 
     def get_stats(self) -> dict[str, Any]:
         """Get validation statistics for diagnostics."""

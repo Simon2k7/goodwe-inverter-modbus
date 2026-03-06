@@ -149,6 +149,7 @@ class GoodweUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         Intended for "daily" cumulative sensors (e.g. PV energy produced today),
         which should be explicitly reset to 0 at midnight if inverter is suspended.
         """
+        self.validator.reset_sensor_tracking(sensor)
         self._last_data[sensor] = 0
         self.data[sensor] = 0
 
