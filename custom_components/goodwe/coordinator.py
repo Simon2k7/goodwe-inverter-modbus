@@ -66,6 +66,10 @@ class GoodweUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.inverter: Inverter = inverter
         self._last_data: dict[str, Any] = {}
         self._polled_entities: dict[BaseCoordinatorEntity, datetime] = {}
+        self._sensor_metadata: dict[str, dict[str, Any]] = {
+            sensor.id_: {"unit": sensor.unit}
+            for sensor in inverter.sensors()
+        }
         
         # Initialize validator with configuration
         enable_validation = entry.options.get(
@@ -91,7 +95,9 @@ class GoodweUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             raw_data = await self.inverter.read_runtime_data()
             
             # Validate sensor values
-            validated_data = self.validator.validate_data(raw_data)
+            validated_data = self.validator.validate_data(
+                raw_data, self._sensor_metadata
+            )
             
             # For rejected values, use last known good values if available
             for sensor_id in raw_data:

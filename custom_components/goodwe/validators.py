@@ -269,8 +269,13 @@ class SensorValidator:
             return "V"
         if "current" in sensor_id or sensor_id.startswith("i"):
             return "A"
-        # Power sensors: starts with p, contains _p, or contains "power"
-        if "power" in sensor_id or sensor_id.startswith("p") or "_p" in sensor_id:
+        # Power sensors: starts with p, contains _p, or contains power-related terms
+        if (
+            "power" in sensor_id
+            or "consumption" in sensor_id
+            or sensor_id.startswith("p")
+            or "_p" in sensor_id
+        ):
             return "W"
         if "energy" in sensor_id or sensor_id.startswith("e_"):
             return "kWh"
