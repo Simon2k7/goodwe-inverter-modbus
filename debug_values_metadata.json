@@ -1,0 +1,745 @@
+{
+  "captured_at": "2026-03-17T11:16:18.178412+00:00",
+  "connection": {
+    "family": "ET",
+    "host": "192.168.1.49",
+    "interval_seconds": 5.0,
+    "port": 502,
+    "protocol": "TCP",
+    "retries": 3,
+    "timeout": 1
+  },
+  "inverter": {
+    "firmware": "04029-12-S11",
+    "model_name": "GW5K-ET",
+    "rated_power": 5000,
+    "serial_number": "95000ETU219W0249"
+  },
+  "sensors": {
+    "active_power": {
+      "kind": "SensorKind.GRID",
+      "name": "Active Power",
+      "unit": "W"
+    },
+    "active_power1": {
+      "kind": "SensorKind.GRID",
+      "name": "Active Power L1",
+      "unit": "W"
+    },
+    "active_power2": {
+      "kind": "SensorKind.GRID",
+      "name": "Active Power L2",
+      "unit": "W"
+    },
+    "active_power3": {
+      "kind": "SensorKind.GRID",
+      "name": "Active Power L3",
+      "unit": "W"
+    },
+    "active_power_total": {
+      "kind": "SensorKind.GRID",
+      "name": "Active Power Total",
+      "unit": "W"
+    },
+    "apparent_power": {
+      "kind": "SensorKind.GRID",
+      "name": "Apparent Power",
+      "unit": "VA"
+    },
+    "backup_f1": {
+      "kind": "SensorKind.UPS",
+      "name": "Back-up L1 Frequency",
+      "unit": "Hz"
+    },
+    "backup_f2": {
+      "kind": "SensorKind.UPS",
+      "name": "Back-up L2 Frequency",
+      "unit": "Hz"
+    },
+    "backup_f3": {
+      "kind": "SensorKind.UPS",
+      "name": "Back-up L3 Frequency",
+      "unit": "Hz"
+    },
+    "backup_i1": {
+      "kind": "SensorKind.UPS",
+      "name": "Back-up L1 Current",
+      "unit": "A"
+    },
+    "backup_i2": {
+      "kind": "SensorKind.UPS",
+      "name": "Back-up L2 Current",
+      "unit": "A"
+    },
+    "backup_i3": {
+      "kind": "SensorKind.UPS",
+      "name": "Back-up L3 Current",
+      "unit": "A"
+    },
+    "backup_p1": {
+      "kind": "SensorKind.UPS",
+      "name": "Back-up L1 Power",
+      "unit": "W"
+    },
+    "backup_p2": {
+      "kind": "SensorKind.UPS",
+      "name": "Back-up L2 Power",
+      "unit": "W"
+    },
+    "backup_p3": {
+      "kind": "SensorKind.UPS",
+      "name": "Back-up L3 Power",
+      "unit": "W"
+    },
+    "backup_ptotal": {
+      "kind": "SensorKind.UPS",
+      "name": "Back-up Load",
+      "unit": "W"
+    },
+    "backup_v1": {
+      "kind": "SensorKind.UPS",
+      "name": "Back-up L1 Voltage",
+      "unit": "V"
+    },
+    "backup_v2": {
+      "kind": "SensorKind.UPS",
+      "name": "Back-up L2 Voltage",
+      "unit": "V"
+    },
+    "backup_v3": {
+      "kind": "SensorKind.UPS",
+      "name": "Back-up L3 Voltage",
+      "unit": "V"
+    },
+    "battery_bms": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery BMS",
+      "unit": ""
+    },
+    "battery_charge_limit": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Charge Limit",
+      "unit": "A"
+    },
+    "battery_discharge_limit": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Discharge Limit",
+      "unit": "A"
+    },
+    "battery_error": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Error",
+      "unit": ""
+    },
+    "battery_error_h": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Error H",
+      "unit": ""
+    },
+    "battery_error_l": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Error L",
+      "unit": ""
+    },
+    "battery_hw_version": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Hardware Version",
+      "unit": ""
+    },
+    "battery_index": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Index",
+      "unit": ""
+    },
+    "battery_max_cell_temp": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Max Cell Temperature",
+      "unit": "C"
+    },
+    "battery_max_cell_temp_id": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Max Cell Temperature ID",
+      "unit": ""
+    },
+    "battery_max_cell_voltage": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Max Cell Voltage",
+      "unit": "V"
+    },
+    "battery_max_cell_voltage_id": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Max Cell Voltage ID",
+      "unit": ""
+    },
+    "battery_min_cell_temp": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Min Cell Temperature",
+      "unit": "C"
+    },
+    "battery_min_cell_temp_id": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Min Cell Temperature ID",
+      "unit": ""
+    },
+    "battery_min_cell_voltage": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Min Cell Voltage",
+      "unit": "V"
+    },
+    "battery_min_cell_voltage_id": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Min Cell Voltage ID",
+      "unit": ""
+    },
+    "battery_mode": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Mode code",
+      "unit": ""
+    },
+    "battery_mode_label": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Mode",
+      "unit": ""
+    },
+    "battery_modules": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Modules",
+      "unit": ""
+    },
+    "battery_protocol": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Protocol",
+      "unit": ""
+    },
+    "battery_soc": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery State of Charge",
+      "unit": "%"
+    },
+    "battery_soh": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery State of Health",
+      "unit": "%"
+    },
+    "battery_status": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Status",
+      "unit": ""
+    },
+    "battery_sw_version": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Software Version",
+      "unit": ""
+    },
+    "battery_temperature": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Temperature",
+      "unit": "C"
+    },
+    "battery_warning": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Warning",
+      "unit": ""
+    },
+    "battery_warning_h": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Warning H",
+      "unit": ""
+    },
+    "battery_warning_l": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Warning L",
+      "unit": ""
+    },
+    "bus_voltage": {
+      "kind": "None",
+      "name": "Bus Voltage",
+      "unit": "V"
+    },
+    "commode": {
+      "kind": "None",
+      "name": "Commode",
+      "unit": ""
+    },
+    "diagnose_result": {
+      "kind": "None",
+      "name": "Diag Status Code",
+      "unit": ""
+    },
+    "diagnose_result_label": {
+      "kind": "None",
+      "name": "Diag Status",
+      "unit": ""
+    },
+    "e_bat_charge_day": {
+      "kind": "SensorKind.BAT",
+      "name": "Today Battery Charge",
+      "unit": "kWh"
+    },
+    "e_bat_charge_total": {
+      "kind": "SensorKind.BAT",
+      "name": "Total Battery Charge",
+      "unit": "kWh"
+    },
+    "e_bat_discharge_day": {
+      "kind": "SensorKind.BAT",
+      "name": "Today Battery Discharge",
+      "unit": "kWh"
+    },
+    "e_bat_discharge_total": {
+      "kind": "SensorKind.BAT",
+      "name": "Total Battery Discharge",
+      "unit": "kWh"
+    },
+    "e_day": {
+      "kind": "SensorKind.PV",
+      "name": "Today's PV Generation",
+      "unit": "kWh"
+    },
+    "e_day_exp": {
+      "kind": "SensorKind.AC",
+      "name": "Today Energy (export)",
+      "unit": "kWh"
+    },
+    "e_day_imp": {
+      "kind": "SensorKind.AC",
+      "name": "Today Energy (import)",
+      "unit": "kWh"
+    },
+    "e_load_day": {
+      "kind": "SensorKind.AC",
+      "name": "Today Load",
+      "unit": "kWh"
+    },
+    "e_load_total": {
+      "kind": "SensorKind.AC",
+      "name": "Total Load",
+      "unit": "kWh"
+    },
+    "e_total": {
+      "kind": "SensorKind.PV",
+      "name": "Total PV Generation",
+      "unit": "kWh"
+    },
+    "e_total_exp": {
+      "kind": "SensorKind.AC",
+      "name": "Total Energy (export)",
+      "unit": "kWh"
+    },
+    "e_total_imp": {
+      "kind": "SensorKind.AC",
+      "name": "Total Energy (import)",
+      "unit": "kWh"
+    },
+    "error_codes": {
+      "kind": "None",
+      "name": "Error Codes",
+      "unit": ""
+    },
+    "errors": {
+      "kind": "None",
+      "name": "Errors",
+      "unit": ""
+    },
+    "fgrid": {
+      "kind": "SensorKind.AC",
+      "name": "On-grid L1 Frequency",
+      "unit": "Hz"
+    },
+    "fgrid2": {
+      "kind": "SensorKind.AC",
+      "name": "On-grid L2 Frequency",
+      "unit": "Hz"
+    },
+    "fgrid3": {
+      "kind": "SensorKind.AC",
+      "name": "On-grid L3 Frequency",
+      "unit": "Hz"
+    },
+    "function_bit": {
+      "kind": "None",
+      "name": "Function Bit",
+      "unit": ""
+    },
+    "grid_in_out": {
+      "kind": "SensorKind.GRID",
+      "name": "On-grid Mode code",
+      "unit": ""
+    },
+    "grid_in_out_label": {
+      "kind": "SensorKind.GRID",
+      "name": "On-grid Mode",
+      "unit": ""
+    },
+    "grid_mode": {
+      "kind": "SensorKind.PV",
+      "name": "Grid Mode code",
+      "unit": ""
+    },
+    "grid_mode_label": {
+      "kind": "SensorKind.PV",
+      "name": "Grid Mode",
+      "unit": ""
+    },
+    "h_total": {
+      "kind": "SensorKind.PV",
+      "name": "Hours Total",
+      "unit": "h"
+    },
+    "house_consumption": {
+      "kind": "SensorKind.AC",
+      "name": "House Consumption",
+      "unit": "W"
+    },
+    "ibattery1": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Current",
+      "unit": "A"
+    },
+    "igrid": {
+      "kind": "SensorKind.AC",
+      "name": "On-grid L1 Current",
+      "unit": "A"
+    },
+    "igrid2": {
+      "kind": "SensorKind.AC",
+      "name": "On-grid L2 Current",
+      "unit": "A"
+    },
+    "igrid3": {
+      "kind": "SensorKind.AC",
+      "name": "On-grid L3 Current",
+      "unit": "A"
+    },
+    "ipv1": {
+      "kind": "SensorKind.PV",
+      "name": "PV1 Current",
+      "unit": "A"
+    },
+    "ipv2": {
+      "kind": "SensorKind.PV",
+      "name": "PV2 Current",
+      "unit": "A"
+    },
+    "load_mode1": {
+      "kind": "None",
+      "name": "Load Mode L1",
+      "unit": ""
+    },
+    "load_mode2": {
+      "kind": "None",
+      "name": "Load Mode L2",
+      "unit": ""
+    },
+    "load_mode3": {
+      "kind": "None",
+      "name": "Load Mode L3",
+      "unit": ""
+    },
+    "load_p1": {
+      "kind": "SensorKind.AC",
+      "name": "Load L1",
+      "unit": "W"
+    },
+    "load_p2": {
+      "kind": "SensorKind.AC",
+      "name": "Load L2",
+      "unit": "W"
+    },
+    "load_p3": {
+      "kind": "SensorKind.AC",
+      "name": "Load L3",
+      "unit": "W"
+    },
+    "load_ptotal": {
+      "kind": "SensorKind.AC",
+      "name": "Load",
+      "unit": "W"
+    },
+    "manufacture_code": {
+      "kind": "None",
+      "name": "Manufacture Code",
+      "unit": ""
+    },
+    "meter_active_power1": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Active Power L1",
+      "unit": "W"
+    },
+    "meter_active_power2": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Active Power L2",
+      "unit": "W"
+    },
+    "meter_active_power3": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Active Power L3",
+      "unit": "W"
+    },
+    "meter_active_power_total": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Active Power Total",
+      "unit": "W"
+    },
+    "meter_apparent_power1": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Apparent Power L1",
+      "unit": "VA"
+    },
+    "meter_apparent_power2": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Apparent Power L2",
+      "unit": "VA"
+    },
+    "meter_apparent_power3": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Apparent Power L3",
+      "unit": "VA"
+    },
+    "meter_apparent_power_total": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Apparent Power Total",
+      "unit": "VA"
+    },
+    "meter_comm_status": {
+      "kind": "None",
+      "name": "Meter Communication Status",
+      "unit": ""
+    },
+    "meter_e_total_exp": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Total Energy (export)",
+      "unit": "kWh"
+    },
+    "meter_e_total_imp": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Total Energy (import)",
+      "unit": "kWh"
+    },
+    "meter_freq": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Frequency",
+      "unit": "Hz"
+    },
+    "meter_power_factor": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Power Factor",
+      "unit": ""
+    },
+    "meter_power_factor1": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Power Factor L1",
+      "unit": ""
+    },
+    "meter_power_factor2": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Power Factor L2",
+      "unit": ""
+    },
+    "meter_power_factor3": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Power Factor L3",
+      "unit": ""
+    },
+    "meter_reactive_power1": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Reactive Power L1",
+      "unit": "var"
+    },
+    "meter_reactive_power2": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Reactive Power L2",
+      "unit": "var"
+    },
+    "meter_reactive_power3": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Reactive Power L2",
+      "unit": "var"
+    },
+    "meter_reactive_power_total": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Reactive Power Total",
+      "unit": "var"
+    },
+    "meter_sw_version": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Software Version",
+      "unit": ""
+    },
+    "meter_test_status": {
+      "kind": "None",
+      "name": "Meter Test Status",
+      "unit": ""
+    },
+    "meter_type": {
+      "kind": "SensorKind.GRID",
+      "name": "Meter Type",
+      "unit": ""
+    },
+    "nbus_voltage": {
+      "kind": "None",
+      "name": "NBus Voltage",
+      "unit": "V"
+    },
+    "operation_mode": {
+      "kind": "None",
+      "name": "Operation Mode code",
+      "unit": ""
+    },
+    "pbattery1": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Power",
+      "unit": "W"
+    },
+    "pgrid": {
+      "kind": "SensorKind.AC",
+      "name": "On-grid L1 Power",
+      "unit": "W"
+    },
+    "pgrid2": {
+      "kind": "SensorKind.AC",
+      "name": "On-grid L2 Power",
+      "unit": "W"
+    },
+    "pgrid3": {
+      "kind": "SensorKind.AC",
+      "name": "On-grid L3 Power",
+      "unit": "W"
+    },
+    "ppv": {
+      "kind": "SensorKind.PV",
+      "name": "PV Power",
+      "unit": "W"
+    },
+    "ppv1": {
+      "kind": "SensorKind.PV",
+      "name": "PV1 Power",
+      "unit": "W"
+    },
+    "ppv2": {
+      "kind": "SensorKind.PV",
+      "name": "PV2 Power",
+      "unit": "W"
+    },
+    "pv1_mode": {
+      "kind": "SensorKind.PV",
+      "name": "PV1 Mode code",
+      "unit": ""
+    },
+    "pv1_mode_label": {
+      "kind": "SensorKind.PV",
+      "name": "PV1 Mode",
+      "unit": ""
+    },
+    "pv2_mode": {
+      "kind": "SensorKind.PV",
+      "name": "PV2 Mode code",
+      "unit": ""
+    },
+    "pv2_mode_label": {
+      "kind": "SensorKind.PV",
+      "name": "PV2 Mode",
+      "unit": ""
+    },
+    "reactive_power": {
+      "kind": "SensorKind.GRID",
+      "name": "Reactive Power",
+      "unit": "var"
+    },
+    "reactive_power_total": {
+      "kind": "SensorKind.GRID",
+      "name": "Reactive Power Total",
+      "unit": "var"
+    },
+    "rssi": {
+      "kind": "None",
+      "name": "RSSI",
+      "unit": ""
+    },
+    "safety_country": {
+      "kind": "SensorKind.AC",
+      "name": "Safety Country code",
+      "unit": ""
+    },
+    "safety_country_label": {
+      "kind": "SensorKind.AC",
+      "name": "Safety Country",
+      "unit": ""
+    },
+    "temperature": {
+      "kind": "SensorKind.AC",
+      "name": "Inverter Temperature (Radiator)",
+      "unit": "C"
+    },
+    "temperature_air": {
+      "kind": "SensorKind.AC",
+      "name": "Inverter Temperature (Air)",
+      "unit": "C"
+    },
+    "temperature_module": {
+      "kind": "None",
+      "name": "Inverter Temperature (Module)",
+      "unit": "C"
+    },
+    "timestamp": {
+      "kind": "None",
+      "name": "Timestamp",
+      "unit": ""
+    },
+    "total_inverter_power": {
+      "kind": "SensorKind.AC",
+      "name": "Total Power",
+      "unit": "W"
+    },
+    "ups_load": {
+      "kind": "SensorKind.UPS",
+      "name": "Ups Load",
+      "unit": "%"
+    },
+    "vbattery1": {
+      "kind": "SensorKind.BAT",
+      "name": "Battery Voltage",
+      "unit": "V"
+    },
+    "vgrid": {
+      "kind": "SensorKind.AC",
+      "name": "On-grid L1 Voltage",
+      "unit": "V"
+    },
+    "vgrid2": {
+      "kind": "SensorKind.AC",
+      "name": "On-grid L2 Voltage",
+      "unit": "V"
+    },
+    "vgrid3": {
+      "kind": "SensorKind.AC",
+      "name": "On-grid L3 Voltage",
+      "unit": "V"
+    },
+    "vpv1": {
+      "kind": "SensorKind.PV",
+      "name": "PV1 Voltage",
+      "unit": "V"
+    },
+    "vpv2": {
+      "kind": "SensorKind.PV",
+      "name": "PV2 Voltage",
+      "unit": "V"
+    },
+    "warning_code": {
+      "kind": "None",
+      "name": "Warning code",
+      "unit": ""
+    },
+    "work_mode": {
+      "kind": "None",
+      "name": "Work Mode code",
+      "unit": ""
+    },
+    "work_mode_label": {
+      "kind": "None",
+      "name": "Work Mode",
+      "unit": ""
+    }
+  }
+}

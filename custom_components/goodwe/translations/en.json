@@ -108,12 +108,10 @@
                     "scan_interval": "Scan interval (s)",
                     "network_retries": "Network retry attempts",
                     "network_timeout": "Network request timeout (s)",
-                    "enable_validation": "Enable sensor value validation",
-                    "outlier_sensitivity": "Outlier detection sensitivity (1-20)"
+                    "enable_validation": "Enable sensor value validation"
                 },
                 "data_description": {
-                    "enable_validation": "Filter out unrealistic sensor values (Modbus errors, out-of-range values, outliers)",
-                    "outlier_sensitivity": "Higher values = more tolerant of value spikes. Default: 5"
+                    "enable_validation": "Filter out unrealistic sensor values (Modbus errors, out-of-range values)"
                 },
                 "description": "Specify optional (network) settings",
                 "title": "GoodWe optional settings"
@@ -121,4 +119,3 @@
         }
     }
 }
-

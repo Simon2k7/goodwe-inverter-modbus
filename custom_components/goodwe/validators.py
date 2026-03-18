@@ -110,26 +110,18 @@ class SensorValidator:
     def __init__(
         self,
         enable_validation: bool = True,
-        outlier_sensitivity: float = 5.0,
         custom_ranges: dict[str, tuple[float, float]] | None = None,
     ) -> None:
         """Initialize sensor validator.
         
         Args:
             enable_validation: Whether to enable validation (default: True)
-            outlier_sensitivity: Multiplier for outlier detection (default: 5.0)
-                                Higher values = more tolerant of outliers
             custom_ranges: Optional custom ranges per sensor ID
         """
         self.enable_validation = enable_validation
-        self.outlier_sensitivity = outlier_sensitivity
         self.custom_ranges = custom_ranges or {}
         self.stats = ValidationStats()
-        
-        # Track recent values for outlier detection
-        self._value_history: dict[str, list[float]] = {}
-        self._max_history = 10
-        
+
         # Track last known values for monotonic sensors
         self._last_monotonic_values: dict[str, float] = {}
 
@@ -155,10 +147,6 @@ class SensorValidator:
         for sensor_id, value in data.items():
             if self._validate_value(sensor_id, value, sensor_metadata):
                 validated_data[sensor_id] = value
-                
-                # Update history for numeric values
-                if isinstance(value, (int, float)) and not isinstance(value, bool):
-                    self._update_history(sensor_id, value)
             else:
                 # Log rejection at warning level for visibility
                 last_rejection = (
@@ -223,11 +211,7 @@ class SensorValidator:
         # Check monotonic increasing constraint
         if not self._validate_monotonic(sensor_id, value):
             return False
-        
-        # Check for outliers
-        if not self._validate_outlier(sensor_id, value):
-            return False
-        
+
         return True
 
     def _is_modbus_error(self, value: float) -> bool:
@@ -397,79 +381,14 @@ class SensorValidator:
             self._last_monotonic_values[sensor_id] = value
         return True
 
-    def _validate_outlier(self, sensor_id: str, value: float) -> bool:
-        """Validate value is not an outlier compared to recent values."""
-        if sensor_id not in self._value_history:
-            return True
-
-        # Skip outlier detection for power sensors - they legitimately vary from 0 to max
-        # (e.g., PV power is 0 at night, thousands of watts during day)
-        # Range validation already catches truly unrealistic values
-        unit = self._get_sensor_unit(sensor_id, None)
-        # Daily energy sensors are explicitly reset to 0 and then rise again,
-        # so outlier detection can incorrectly lock them at 0 after midnight.
-        if unit == "kWh" and sensor_id.endswith("_day"):
-            return True
-        if unit in ("W", "VA", "var"):
-            return True
-
-        history = self._value_history[sensor_id]
-        if len(history) < 3:
-            # Not enough history to detect outliers
-            return True
-        
-        # Calculate mean and max deviation from recent history
-        mean = sum(history) / len(history)
-        max_recent = max(history)
-        min_recent = min(history)
-        
-        # If mean is very close to 0, use range-based detection
-        if abs(mean) < 0.1:
-            range_val = max_recent - min_recent
-            threshold = range_val * self.outlier_sensitivity
-            
-            if abs(value) > threshold + max(abs(max_recent), abs(min_recent)):
-                self.stats.record_rejection(
-                    sensor_id,
-                    value,
-                    f"Outlier: value {value} too far from recent range [{min_recent}, {max_recent}]",
-                )
-                return False
-        else:
-            # Use mean-based detection
-            threshold = abs(mean) * self.outlier_sensitivity
-            
-            if abs(value - mean) > threshold:
-                self.stats.record_rejection(
-                    sensor_id,
-                    value,
-                    f"Outlier: value {value} deviates >{self.outlier_sensitivity}x from mean {mean:.2f}",
-                )
-                return False
-        
-        return True
-
-    def _update_history(self, sensor_id: str, value: float) -> None:
-        """Update value history for outlier detection."""
-        if sensor_id not in self._value_history:
-            self._value_history[sensor_id] = []
-        
-        self._value_history[sensor_id].append(value)
-        
-        # Keep only recent history
-        if len(self._value_history[sensor_id]) > self._max_history:
-            self._value_history[sensor_id].pop(0)
-
     def reset_sensor_tracking(self, sensor_id: str) -> None:
         """Clear validator tracking for sensors that are explicitly reset."""
-        self._value_history.pop(sensor_id, None)
         self._last_monotonic_values.pop(sensor_id, None)
 
     def get_stats(self) -> dict[str, Any]:
         """Get validation statistics for diagnostics."""
         return {
             "enabled": self.enable_validation,
-            "outlier_sensitivity": self.outlier_sensitivity,
             "custom_ranges_count": len(self.custom_ranges),
             **self.stats.get_stats(),
         }

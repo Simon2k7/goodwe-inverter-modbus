@@ -21,9 +21,7 @@ from homeassistant.helpers.update_coordinator import (
 from .const import (
     CONF_CUSTOM_RANGES,
     CONF_ENABLE_VALIDATION,
-    CONF_OUTLIER_SENSITIVITY,
     DEFAULT_ENABLE_VALIDATION,
-    DEFAULT_OUTLIER_SENSITIVITY,
     DEFAULT_SCAN_INTERVAL,
 )
 from .validators import SensorValidator
@@ -75,14 +73,10 @@ class GoodweUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         enable_validation = entry.options.get(
             CONF_ENABLE_VALIDATION, DEFAULT_ENABLE_VALIDATION
         )
-        outlier_sensitivity = entry.options.get(
-            CONF_OUTLIER_SENSITIVITY, DEFAULT_OUTLIER_SENSITIVITY
-        )
         custom_ranges = entry.options.get(CONF_CUSTOM_RANGES, {})
         
         self.validator = SensorValidator(
             enable_validation=enable_validation,
-            outlier_sensitivity=outlier_sensitivity,
             custom_ranges=custom_ranges,
         )
 

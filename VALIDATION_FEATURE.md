@@ -1,109 +1,95 @@
-# Sensor Value Validation Feature
+# Sensorwert-Validierung
 
-## Overview
+Diese Datei ist die zentrale Dokumentation der aktuellen Validierungslogik im Projekt. Sie ersetzt die getrennten Beschreibungen aus `VALIDATION_FEATURE.md` und `VALIDIERUNGSABLAUF.md`.
 
-This implementation adds comprehensive sensor value validation to the GoodWe Home Assistant integration to prevent unrealistic values from corrupting statistics. This addresses issues where Modbus/TCP communication errors or inverter glitches send impossible readings.
+Die Beschreibung orientiert sich am tatsächlich implementierten Verhalten in:
 
-## Implementation Summary
+- `custom_components/goodwe/validators.py`
+- `custom_components/goodwe/coordinator.py`
+- `custom_components/goodwe/config_flow.py`
+- `custom_components/goodwe/diagnostics.py`
+- ergänzend für Tageswerte: `custom_components/goodwe/sensor.py`
 
-### Files Created
+## Ziel
 
-1. **`custom_components/goodwe/validators.py`** (NEW)
-   - Core validation logic with `SensorValidator` class
-   - Validates sensor values against configurable ranges
-   - Detects Modbus error codes (0xFFFF, 0x7FFF, 0x8000)
-   - Implements outlier detection using historical values
-   - Enforces monotonic increasing constraints for energy counters
-   - Tracks validation statistics for diagnostics
+Die Validierung soll verhindern, dass unrealistische oder kaputte Inverterwerte die Home-Assistant-Statistiken beschädigen.
 
-### Files Modified
+Abgefangen werden vor allem:
 
-2. **`custom_components/goodwe/coordinator.py`**
-   - Integrated `SensorValidator` into data update coordinator
-   - Added validation in `_async_update_data()` method
-   - Falls back to last known good values when validation fails
-   - **Bug fix**: Fixed `total_sensor_value()` to use `is not None` instead of falsy check
+- offensichtliche Modbus-/Register-Fehlerwerte
+- Werte außerhalb plausibler Bereiche
+- unzulässige Rückgänge bei Totalzählern
+- `NaN` und `Inf`
 
-3. **`custom_components/goodwe/const.py`**
-   - Added validation configuration constants:
-     - `CONF_ENABLE_VALIDATION` (default: True)
-     - `CONF_OUTLIER_SENSITIVITY` (default: 5.0)
-     - `CONF_CUSTOM_RANGES` (for custom per-sensor ranges)
-     - `DEFAULT_ENABLE_VALIDATION` = True
-     - `DEFAULT_OUTLIER_SENSITIVITY` = 5.0
+## Beteiligte Dateien
 
-4. **`custom_components/goodwe/config_flow.py`**
-   - Extended options flow with validation settings
-   - Added UI fields for enable_validation and outlier_sensitivity
-   - Range validation: sensitivity must be 1.0-20.0
+### `custom_components/goodwe/validators.py`
 
-5. **`custom_components/goodwe/diagnostics.py`**
-   - Added validation statistics to diagnostic output
-   - Shows rejected value counts per sensor
-   - Displays recent validation failures with reasons
+Enthält die Kernlogik:
 
-6. **`custom_components/goodwe/strings.json`**
-   - Added UI strings for validation options
-   - Includes descriptions for user guidance
+- `SensorValidator`
+- Bereichsprüfung
+- Modbus-Fehlerwert-Heuristik
+- Monotonieprüfung
+- Statistik über verworfene Werte
 
-7. **`custom_components/goodwe/translations/en.json`**
-   - Added English translations for validation options
-   - Includes helper text for configuration
+### `custom_components/goodwe/coordinator.py`
 
-8. **`README.md`**
-   - Added comprehensive "Sensor Value Validation" section
-   - Documents what validation does, how to configure it
-   - Troubleshooting guide for false positives
+Bindet die Validierung in den Update-Ablauf ein:
 
-## Validation Rules
+- liest Rohdaten vom Inverter
+- validiert alle Werte
+- setzt bei Ablehnung den letzten gültigen Wert wieder ein
+- enthält die Korrektur in `total_sensor_value()`, damit echte `0`-Werte nicht verloren gehen
 
-### Default Value Ranges by Unit
+### `custom_components/goodwe/const.py`
 
-| Unit | Range | Description |
-|------|-------|-------------|
-| V | 0-1000V | Voltage sensors |
-| A | -150-150A | Current sensors (negative = discharge) |
-| W | -50000-50000W | Power sensors |
-| kWh | 0-1000000kWh | Energy counters (lifetime) |
-| C | -40-100°C | Temperature sensors |
-| Hz | 45-65Hz | Frequency sensors |
-| % | 0-100% | Percentage sensors |
-| VA | -50000-50000VA | Apparent power |
-| var | -50000-50000var | Reactive power |
+Definiert die Konfigurationswerte:
 
-### Sensor-Specific Ranges
+- `CONF_ENABLE_VALIDATION`
+- `CONF_CUSTOM_RANGES`
+- `DEFAULT_ENABLE_VALIDATION = True`
 
-Tighter ranges for specific sensors:
-- Grid voltages: 180-280V
-- Grid frequency: 49-61Hz
-- Battery SoC: 0-100%
-- Daily energy: 0-200kWh per day
+### `custom_components/goodwe/config_flow.py`
 
-### Validation Checks
+Stellt die Optionen in Home Assistant bereit:
 
-1. **Modbus Error Detection**: Filters out common error values
-2. **Range Validation**: Ensures values are within acceptable bounds
-3. **Monotonic Validation**: Energy counters must never decrease
-4. **Outlier Detection**: Rejects values deviating >5x from recent average
-5. **Finite Check**: Filters out NaN and Inf values
+- Validierung ein/aus
 
-## Configuration Options
+### `custom_components/goodwe/diagnostics.py`
 
-### Via Home Assistant UI
+Liefert Diagnosedaten zur Validierung:
 
-Settings → Devices & Services → GoodWe → Configure
+- Anzahl verworfener Werte pro Sensor
+- letzte Ablehnungen mit Grund
 
-- **Enable sensor value validation** (boolean, default: True)
-  - Toggle validation on/off
-  
-- **Outlier detection sensitivity** (float, 1-20, default: 5.0)
-  - Controls tolerance for value spikes
-  - Lower = stricter (1-3)
-  - Higher = more tolerant (10-20)
+### `custom_components/goodwe/sensor.py`
 
-### Programmatic (Advanced)
+Behandelt Tageszähler gesondert:
 
-Custom ranges can be set via options (not exposed in UI by default):
+- `e_day`
+- `e_load_day`
+
+Diese Werte werden bei Bedarf um Mitternacht auf `0` gesetzt.
+
+## Konfiguration
+
+Die Validierung ist standardmäßig aktiviert.
+
+### Optionen in Home Assistant
+
+Pfad:
+
+`Einstellungen -> Geräte & Dienste -> GoodWe -> Konfigurieren`
+
+Verfügbare Optionen:
+
+- `Enable sensor value validation`
+  Standard: `True`
+
+### Erweiterte Konfiguration
+
+Zusätzliche benutzerdefinierte Bereiche sind intern möglich über:
 
 ```python
 CONF_CUSTOM_RANGES = {
@@ -111,18 +97,239 @@ CONF_CUSTOM_RANGES = {
 }
 ```
 
-## Behavior
+Diese Option ist aktuell nicht direkt im UI als eigene Feldliste umgesetzt.
 
-### When Validation Rejects a Value
+## Ablauf pro Update
 
-1. Invalid value is **not** stored in current data
-2. Last known good value is used instead
-3. Rejection is logged at DEBUG level
-4. Statistics are updated for diagnostics
+Bei jedem Update im Coordinator läuft der Ablauf so:
+
+1. `read_runtime_data()` liest die Rohdaten vom Inverter.
+2. `validator.validate_data(raw_data, sensor_metadata)` prüft jeden einzelnen Sensorwert.
+3. Gültige Werte werden übernommen.
+4. Verworfene Werte werden nicht übernommen.
+5. Wenn für einen verworfenen Wert bereits ein letzter gültiger Wert existiert, wird dieser alte Wert wieder eingesetzt.
+6. Wenn noch kein alter gültiger Wert existiert, fehlt der Sensor in diesem Update-Ergebnis.
+
+Praktische Folge:
+
+- Ein kaputter neuer Wert ist in Home Assistant oft nicht direkt sichtbar.
+- Stattdessen bleibt häufig der letzte gültige Wert stehen.
+
+## Exakte Prüfreihenfolge pro Sensorwert
+
+Jeder Wert wird in genau dieser Reihenfolge geprüft:
+
+### 1. `None`
+
+- `None` wird akzeptiert.
+- Die weitere Behandlung erfolgt später im Coordinator.
+
+### 2. Nicht-numerische Werte
+
+Direkt akzeptiert werden insbesondere:
+
+- Strings
+- Enum-Werte
+- Textwerte
+- Bool-Werte
+
+Für diese Werte gibt es keine Bereichs- oder Monotonieprüfung.
+
+### 3. Modbus-Fehlerwert-Heuristik
+
+Folgende Werte werden als kaputte Registerwerte behandelt:
+
+- `0xFFFF`
+- `0x7FFF`
+- `0x8000`
+- `-32768`
+- `65535`
+
+Zusätzlich werden Werte verworfen, wenn sie weniger als `0.01` von einem dieser Werte abweichen.
+
+Wichtig:
+
+- Das ist keine allgemeingültige Modbus-TCP-Regel.
+- Es ist eine Heuristik für typische Sentinel- oder Fehlerwerte in 16-Bit-Registern.
+- Echte Modbus-Protokollfehler werden normalerweise per Exception Response oder Timeout signalisiert, nicht durch diese Zahlen im Register.
+
+### 4. Finite-Prüfung
+
+Verworfen werden:
+
+- `NaN`
+- `Inf`
+- `-Inf`
+
+### 5. Einheit bestimmen
+
+Die Einheit wird zuerst aus den Sensor-Metadaten genommen.
+
+Falls keine Metadaten verfügbar sind, wird sie aus der Sensor-ID abgeleitet:
+
+- `voltage` oder ID beginnt mit `v` -> `V`
+- `current` oder ID beginnt mit `i` -> `A`
+- `power`, `consumption`, ID beginnt mit `p` oder enthält `_p` -> `W`
+- `energy` oder ID beginnt mit `e_` -> `kWh`
+- `temp` oder `temperature` -> `C`
+- `freq` oder ID beginnt mit `fgrid` -> `Hz`
+- `soc` oder `%` -> `%`
+
+Sonderfall:
+
+- Sensor-IDs mit `function` oder `_bit` bekommen absichtlich keine Einheit zugeordnet.
+
+### 6. Bereichsprüfung
+
+Die Bereichsprüfung selbst hat wieder eine feste Priorität.
+
+#### 6.1 Negative `kWh`
+
+Wenn die Einheit `kWh` ist:
+
+- jeder Wert `< 0` wird immer verworfen
+
+Diese Regel greift vor allen anderen Bereichsregeln.
+
+#### 6.2 Benutzerdefinierter Bereich
+
+Wenn für die Sensor-ID ein Eintrag in `custom_ranges` existiert:
+
+- nur dieser Bereich zählt
+- bei Treffer ist die Bereichsprüfung bestanden
+- bei Verstoß wird verworfen
+
+Danach werden keine sensor-spezifischen oder allgemeinen Standardbereiche mehr geprüft.
+
+#### 6.3 Sensor-spezifische Bereiche
+
+Wenn kein `custom_range` greift, gelten für diese Sensoren feste Spezialbereiche:
+
+| Sensor-ID | Bereich |
+| --- | --- |
+| `vgrid` | `180..280` |
+| `vgrid2` | `180..280` |
+| `vgrid3` | `180..280` |
+| `vbattery1` | `40..600` |
+| `vpv1` | `0..1000` |
+| `vpv2` | `0..1000` |
+| `vpv3` | `0..1000` |
+| `vpv4` | `0..1000` |
+| `fgrid` | `49..61` |
+| `fgrid2` | `49..61` |
+| `fgrid3` | `49..61` |
+| `battery_soc` | `0..100` |
+| `e_day` | `0..200` |
+| `e_load_day` | `0..500` |
+
+Wenn ein Sensor in dieser Liste ist:
+
+- innerhalb des Bereichs -> gültig
+- außerhalb des Bereichs -> verworfen
+
+Danach wird kein Standardbereich nach Einheit mehr geprüft.
+
+#### 6.4 Standardbereiche nach Einheit
+
+Nur wenn weder `custom_range` noch sensor-spezifischer Bereich gegriffen hat, gelten diese Standardbereiche:
+
+| Einheit | Bereich |
+| --- | --- |
+| `V` | `0..1000` |
+| `A` | `-150..150` |
+| `W` | `-50000..50000` |
+| `kWh` | `0..100000` |
+| `VA` | `-50000..50000` |
+| `var` | `-50000..50000` |
+| `C` | `-40..100` |
+| `Hz` | `45..65` |
+| `%` | `0..100` |
+| `h` | `0..1000000` |
+
+Wenn keine Einheit bekannt ist, gibt es keine Standard-Bereichsprüfung.
+
+### 7. Monotonieprüfung
+
+Diese Prüfung gilt nur für:
+
+- `e_total`
+- `e_bat_charge_total`
+- `e_bat_discharge_total`
+- `meter_e_total_exp`
+- `meter_e_total_imp`
+- `h_total`
+
+Regel:
+
+- Diese Sensoren sollen nur steigen.
+
+Erlaubte Toleranz:
+
+- `max(1 % des letzten Werts, 0.1)`
+
+Das bedeutet:
+
+- ein kleiner Rückgang innerhalb der Toleranz wird akzeptiert
+- ein größerer Rückgang wird genauer geprüft
+
+Sonderfälle, die trotz Rückgang akzeptiert werden:
+
+1. Neuer Wert `< 1.0`
+   Dann wird ein möglicher Inverter-Reset angenommen und der neue Wert als neue Basis akzeptiert.
+
+2. Neuer Wert ist kleiner als `50 %` des letzten Werts
+   Auch dann wird ein möglicher Reset angenommen und der neue Wert wird akzeptiert.
+
+Nur wenn beides nicht zutrifft, wird der Rückgang verworfen.
+
+Wichtig:
+
+- Diese Reset-Logik akzeptiert bewusst auch große Sprünge nach unten.
+- Das ist aktuell so implementiert.
+
+### 8. Aktive Prüfungen
+
+Die Validierung arbeitet jetzt nur noch mit:
+
+- Modbus-Fehlerwert-Heuristik
+- Finite-Prüfung
+- Bereichsprüfung
+- Monotonieprüfung für definierte Totalzähler
+
+## Welche Regeln für welche Werte gelten
+
+| Wertetyp / Sensor | Angewendete Regeln |
+| --- | --- |
+| `None` | direkt akzeptiert |
+| String / Enum / Text / Bool | direkt akzeptiert |
+| jeder numerische Wert | Modbus-Heuristik, Finite-Prüfung, Bereichsprüfung, evtl. Monotonie |
+| jeder `kWh`-Wert | zusätzliche Regel: niemals negativ |
+| Sensor mit `custom_range` | `custom_range` überschreibt andere Bereichsregeln |
+| `vgrid`, `vgrid2`, `vgrid3` | sensor-spezifischer Bereich `180..280` |
+| `vbattery1` | sensor-spezifischer Bereich `40..600` |
+| `vpv1` bis `vpv4` | sensor-spezifischer Bereich `0..1000` |
+| `fgrid`, `fgrid2`, `fgrid3` | sensor-spezifischer Bereich `49..61` |
+| `battery_soc` | sensor-spezifischer Bereich `0..100` |
+| `e_day` | sensor-spezifischer Bereich `0..200` |
+| `e_load_day` | sensor-spezifischer Bereich `0..500` |
+| `e_total`, `e_bat_charge_total`, `e_bat_discharge_total`, `meter_e_total_exp`, `meter_e_total_imp`, `h_total` | zusätzliche Monotonieprüfung |
+| typische Leistungswerte wie `ppv`, `active_power`, `house_consumption` | Standardbereich `W` |
+| Sensoren ohne bekannte Einheit | keine einheitsbasierte Standard-Bereichsprüfung |
+| Sensor-IDs mit `function` oder `_bit` | keine Einheitszuordnung, damit keine einheitsbasierte Standard-Bereichsprüfung |
+
+## Verhalten bei Ablehnung
+
+Wenn ein Wert verworfen wird:
+
+1. Er wird nicht in `validated_data` übernommen.
+2. Die Ablehnung wird in den Validierungsstatistiken gespeichert.
+3. Es wird eine Warnung geloggt.
+4. Falls ein letzter gültiger Wert vorhanden ist, setzt der Coordinator genau diesen alten Wert wieder ein.
+5. Falls kein letzter gültiger Wert vorhanden ist, fehlt der Sensorwert im aktuellen Ergebnis.
 
 ### Logging
 
-To see validation activity:
+Für die Analyse ist diese Logger-Konfiguration sinnvoll:
 
 ```yaml
 logger:
@@ -130,19 +337,19 @@ logger:
     custom_components.goodwe: debug
 ```
 
-Look for messages like:
-- `"Rejected value for sensor X: Y"`
-- `"Using last known value for X after validation rejection"`
+Typische Meldungen:
 
-## Diagnostics
+- Warnung bei verworfenem Wert
+- Debug-Meldung beim Rückgriff auf den letzten gültigen Wert
 
-Download diagnostics to see:
+## Diagnosedaten
+
+Die Diagnosedaten enthalten einen Abschnitt `validation`, zum Beispiel:
 
 ```json
 {
   "validation": {
     "enabled": true,
-    "outlier_sensitivity": 5.0,
     "custom_ranges_count": 0,
     "rejected_count": {
       "vpv1": 3,
@@ -159,44 +366,58 @@ Download diagnostics to see:
 }
 ```
 
-## Bug Fixes
+Damit lässt sich nachvollziehen:
 
-### Fixed: `total_sensor_value()` Bug
+- welcher Sensor wie oft verworfen wurde
+- welcher konkrete Wert verworfen wurde
+- aus welchem Grund die Ablehnung passiert ist
 
-**Problem**: The method used `if val` instead of `if val is not None`, causing legitimate zero values to be rejected.
+## Sonderfälle
 
-**Impact**: Total energy sensors returning exactly 0 would incorrectly fall back to last known value.
+### Korrektur in `total_sensor_value()`
 
-**Fix**: Changed to explicit `is not None` check.
+Früher war die Logik sinngemäß:
 
 ```python
-# Before (buggy):
 return val if val else self._last_data.get(sensor)
+```
 
-# After (fixed):
+Das war problematisch, weil echte `0`-Werte wie ein fehlender Wert behandelt wurden.
+
+Aktuell ist die Logik:
+
+```python
 return val if (val is not None and val != "") else self._last_data.get(sensor)
 ```
 
-## Testing Recommendations
+Damit bleibt ein echter `0`-Wert erhalten.
 
-1. **Monitor validation statistics** after deployment
-2. **Check debug logs** for rejected values
-3. **Review diagnostics** to identify problematic sensors
-4. **Adjust sensitivity** if too many false positives
-5. **Compare statistics** before/after to verify improvement
+### Tageszähler um Mitternacht
 
-## Backward Compatibility
+Für diese Sensoren gibt es eine Sonderbehandlung:
 
-- **Default behavior**: Validation is ENABLED by default
-- Existing installations will automatically get validation on next restart
-- Can be disabled via configuration if needed
-- No breaking changes to existing sensors or entities
+- `e_day`
+- `e_load_day`
 
-## Future Enhancements
+Wenn der Inverter nachts offline ist, werden sie um Mitternacht auf `0` gesetzt.
 
-Potential improvements:
-1. Per-sensor custom range configuration via UI
-2. More sophisticated outlier detection algorithms
-3. Learning mode to auto-adjust ranges
-4. Notifications when many rejections occur
-5. Historical validation statistics graphs
+Dabei wird zusätzlich:
+
+- die Verlaufshistorie im Validator gelöscht
+- der zuletzt bekannte Wert auf `0` gesetzt
+
+Das verhindert, dass Tageswerte nachts stehen bleiben und erst morgens beim Aufwachen des Inverters zurückgesetzt werden.
+
+## Empfehlungen für den Betrieb
+
+- Nach Änderungen zunächst die Diagnosedaten beobachten.
+- Bei unerwarteten Ablehnungen die Logs prüfen.
+- Bei einzelnen problematischen Sensoren sind gezielte `custom_ranges` sinnvoller als globale Lockerungen.
+
+## Kurzfassung
+
+- Die Validierung ist standardmäßig aktiv.
+- Nicht-numerische Werte werden praktisch nicht validiert.
+- Numerische Werte laufen durch Modbus-Heuristik, Finite-Prüfung, Bereichsprüfung und optional Monotonieprüfung.
+- Verworfene Werte werden in der Regel durch den letzten gültigen Wert ersetzt.
+- Tageswerte haben bewusst Sonderregeln.

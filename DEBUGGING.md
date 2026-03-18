@@ -61,7 +61,6 @@ Im JSON suchen nach:
 ```json
 "validation": {
   "enabled": true,
-  "outlier_sensitivity": 5.0,
   "rejected_count": {
     "e_bat_charge_total": 123,  ← Wie oft wurde dieser Sensor abgelehnt?
     ...
@@ -127,7 +126,6 @@ In Home Assistant:
 1. **Einstellungen** → **Geräte & Dienste** → **GoodWe** → **KONFIGURIEREN**
 2. Prüfen Sie:
    - ✅ **Enable sensor value validation**: ON
-   - **Outlier detection sensitivity**: 5 (Standard)
 
 ### 8. **Test-Szenario**
 
