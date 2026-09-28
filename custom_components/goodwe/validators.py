@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+import math
+import time
 from typing import Any
 
 _LOGGER = logging.getLogger(__name__)
@@ -70,6 +72,8 @@ MONOTONIC_INCREASING_SENSORS = {
     "h_total",
 }
 
+METER_ENERGY_SENSORS = {"meter_e_total_exp", "meter_e_total_imp"}
+
 
 class ValidationStats:
     """Track validation statistics for diagnostics."""
@@ -112,6 +116,7 @@ class SensorValidator:
         enable_validation: bool = True,
         outlier_sensitivity: float = 5.0,
         custom_ranges: dict[str, tuple[float, float]] | None = None,
+        max_meter_power_kw: float = 50.0,
     ) -> None:
         """Initialize sensor validator.
         
@@ -120,10 +125,16 @@ class SensorValidator:
             outlier_sensitivity: Multiplier for outlier detection (default: 5.0)
                                 Higher values = more tolerant of outliers
             custom_ranges: Optional custom ranges per sensor ID
+            max_meter_power_kw: Maximum grid import/export power in kW
         """
         self.enable_validation = enable_validation
         self.outlier_sensitivity = outlier_sensitivity
         self.custom_ranges = custom_ranges or {}
+        if not math.isfinite(max_meter_power_kw) or max_meter_power_kw <= 0:
+            raise ValueError("Maximum meter power must be finite and positive")
+        self.max_meter_power_kw = max_meter_power_kw
+        self.meter_counters: dict[str, dict[str, float]] = {}
+        self._meter_candidates: dict[str, dict[str, float]] = {}
         self.stats = ValidationStats()
         
         # Track recent values for outlier detection
@@ -191,6 +202,13 @@ class SensorValidator:
         Returns:
             True if value is valid, False otherwise
         """
+        # Meter counters must never bypass validation as None, strings or booleans.
+        if sensor_id in METER_ENERGY_SENSORS and (
+            not isinstance(value, (int, float)) or isinstance(value, bool)
+        ):
+            self.stats.record_rejection(sensor_id, value, "Non-numeric meter counter")
+            return False
+
         # Allow None values (will be handled by coordinator)
         if value is None:
             return True
@@ -219,6 +237,11 @@ class SensorValidator:
         # Check range validation
         if not self._validate_range(sensor_id, value, unit):
             return False
+
+        # Lifetime grid meters cannot reset automatically. Their growth is bounded
+        # by elapsed time, rather than a percentage of the lifetime total.
+        if sensor_id in METER_ENERGY_SENSORS:
+            return self._validate_meter_counter(sensor_id, value)
         
         # Check monotonic increasing constraint
         if not self._validate_monotonic(sensor_id, value):
@@ -347,6 +370,36 @@ class SensorValidator:
         
         return True
 
+    def _validate_meter_counter(self, sensor_id: str, value: float) -> bool:
+        """Reject decreases and impossible growth without advancing the baseline."""
+        now = time.time()
+        reading = {"value": value, "timestamp": now}
+        previous = self.meter_counters.get(sensor_id)
+        candidate = self._meter_candidates.get(sensor_id)
+        baseline = previous if previous is not None else candidate
+        reason = None
+        if value < 0:
+            reason = "Negative meter counter"
+        elif baseline is None:
+            reason = "Waiting for a second meter reading to confirm initial baseline"
+        else:
+            elapsed = max(0.0, now - baseline["timestamp"])
+            # Allow one 0.01 kWh counter step for quantization/rounding.
+            max_increase = self.max_meter_power_kw * elapsed / 3600 + 0.010001
+            increase = value - baseline["value"]
+            if increase < 0:
+                reason = f"Meter counter decreased from {baseline['value']} to {value}"
+            elif increase > max_increase:
+                reason = f"Meter counter increased by {increase} kWh; maximum {max_increase:.4f} kWh"
+        if reason is not None:
+            if previous is None and value >= 0:
+                self._meter_candidates[sensor_id] = reading
+            self.stats.record_rejection(sensor_id, value, reason)
+            return False
+        self.meter_counters[sensor_id] = reading
+        self._meter_candidates.pop(sensor_id, None)
+        return True
+
     def _validate_monotonic(self, sensor_id: str, value: float) -> bool:
         """Validate that monotonic increasing sensors only increase."""
         if sensor_id not in MONOTONIC_INCREASING_SENSORS:
@@ -464,12 +517,15 @@ class SensorValidator:
         """Clear validator tracking for sensors that are explicitly reset."""
         self._value_history.pop(sensor_id, None)
         self._last_monotonic_values.pop(sensor_id, None)
+        self.meter_counters.pop(sensor_id, None)
+        self._meter_candidates.pop(sensor_id, None)
 
     def get_stats(self) -> dict[str, Any]:
         """Get validation statistics for diagnostics."""
         return {
             "enabled": self.enable_validation,
             "outlier_sensitivity": self.outlier_sensitivity,
+            "max_meter_power_kw": self.max_meter_power_kw,
             "custom_ranges_count": len(self.custom_ranges),
             **self.stats.get_stats(),
         }

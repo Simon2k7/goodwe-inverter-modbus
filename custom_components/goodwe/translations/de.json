@@ -98,7 +98,11 @@
                     "model_family": "Protokoll Familie [ET|DT|ES]",
                     "scan_interval": "Scan-Intervall (s)",
                     "network_retries": "Netzwiederholungsversuche",
-                    "network_timeout": "Zeitüberschreitung bei Netzanfragen(s)"
+                    "network_timeout": "Zeitüberschreitung bei Netzanfragen(s)",
+                    "max_meter_power_kw": "Maximale Netzbezugs-/Einspeiseleistung (kW)"
+                },
+                "data_description": {
+                    "max_meter_power_kw": "Physikalische Grenze des Netzanschlusses mit Reserve. Begrenzt den Zähleranstieg anhand der verstrichenen Zeit. Standard: 50 kW."
                 },
                 "description": "Optionale (Netzwerk-)Einstellungen",
                 "title": "GoodWe optionale Einstellungen"
@@ -106,4 +110,3 @@
         }
     }
 }
-

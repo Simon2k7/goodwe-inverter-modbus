@@ -23,12 +23,14 @@ from homeassistant.helpers import config_validation as cv
 from .const import (
     CONF_ENABLE_VALIDATION,
     CONF_KEEP_ALIVE,
+    CONF_MAX_METER_POWER_KW,
     CONF_MODBUS_ID,
     CONF_MODEL_FAMILY,
     CONF_NETWORK_RETRIES,
     CONF_NETWORK_TIMEOUT,
     CONF_OUTLIER_SENSITIVITY,
     DEFAULT_ENABLE_VALIDATION,
+    DEFAULT_MAX_METER_POWER_KW,
     DEFAULT_MODBUS_ID,
     DEFAULT_NAME,
     DEFAULT_NETWORK_RETRIES,
@@ -59,6 +61,9 @@ OPTIONS_SCHEMA = vol.Schema(
         vol.Optional(CONF_ENABLE_VALIDATION): cv.boolean,
         vol.Optional(CONF_OUTLIER_SENSITIVITY): vol.All(
             vol.Coerce(float), vol.Range(min=1.0, max=20.0)
+        ),
+        vol.Optional(CONF_MAX_METER_POWER_KW, default=DEFAULT_MAX_METER_POWER_KW): vol.All(
+            vol.Coerce(float), vol.Range(min=0.1, max=1000.0)
         ),
     }
 )
@@ -117,6 +122,9 @@ class OptionsFlowHandler(OptionsFlow):
                     CONF_MODBUS_ID: modbus_id,
                     CONF_ENABLE_VALIDATION: enable_validation,
                     CONF_OUTLIER_SENSITIVITY: outlier_sensitivity,
+                    CONF_MAX_METER_POWER_KW: self.entry.options.get(
+                        CONF_MAX_METER_POWER_KW, DEFAULT_MAX_METER_POWER_KW
+                    ),
                 },
             ),
         )
