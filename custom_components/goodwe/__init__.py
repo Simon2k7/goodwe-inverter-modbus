@@ -97,6 +97,7 @@ async def async_unload_entry(
     )
 
     if unload_ok:
+        await config_entry.runtime_data.coordinator.async_save_meter_counters()
         hass.data[DOMAIN].pop(config_entry.entry_id)
 
         if not hass.data[DOMAIN]:

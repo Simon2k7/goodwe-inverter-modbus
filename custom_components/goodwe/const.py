@@ -23,6 +23,7 @@ DEFAULT_MODBUS_ID = 0
 
 # Validation configuration
 DEFAULT_ENABLE_VALIDATION = True
+DEFAULT_MAX_METER_POWER_KW = 50.0
 
 CONF_KEEP_ALIVE = "keep_alive"
 CONF_MODEL_FAMILY = "model_family"
@@ -31,6 +32,7 @@ CONF_NETWORK_TIMEOUT = "network_timeout"
 CONF_MODBUS_ID = "modbus_id"
 CONF_ENABLE_VALIDATION = "enable_validation"
 CONF_CUSTOM_RANGES = "custom_ranges"
+CONF_MAX_METER_POWER_KW = "max_meter_power_kw"
 
 SERVICE_GET_PARAMETER = "get_parameter"
 SERVICE_SET_PARAMETER = "set_parameter"

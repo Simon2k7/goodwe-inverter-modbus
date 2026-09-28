@@ -108,10 +108,12 @@
                     "scan_interval": "Scan interval (s)",
                     "network_retries": "Network retry attempts",
                     "network_timeout": "Network request timeout (s)",
-                    "enable_validation": "Enable sensor value validation"
+                    "enable_validation": "Enable sensor value validation",
+                    "max_meter_power_kw": "Maximum grid import/export power (kW)"
                 },
                 "data_description": {
-                    "enable_validation": "Filter out unrealistic sensor values (Modbus errors, out-of-range values)"
+                    "enable_validation": "Filter out unrealistic sensor values (Modbus errors, out-of-range values)",
+                    "max_meter_power_kw": "Physical limit of the grid connection, with margin. Bounds energy counter growth over elapsed time. Default: 50 kW."
                 },
                 "description": "Specify optional (network) settings",
                 "title": "GoodWe optional settings"

@@ -10,8 +10,9 @@ from typing import Any
 from goodwe import Inverter, InverterError, RequestFailedException
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_SCAN_INTERVAL
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import (
     BaseCoordinatorEntity,
     DataUpdateCoordinator,
@@ -21,7 +22,9 @@ from homeassistant.helpers.update_coordinator import (
 from .const import (
     CONF_CUSTOM_RANGES,
     CONF_ENABLE_VALIDATION,
+    CONF_MAX_METER_POWER_KW,
     DEFAULT_ENABLE_VALIDATION,
+    DEFAULT_MAX_METER_POWER_KW,
     DEFAULT_SCAN_INTERVAL,
 )
 from .validators import SensorValidator
@@ -78,7 +81,29 @@ class GoodweUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.validator = SensorValidator(
             enable_validation=enable_validation,
             custom_ranges=custom_ranges,
+            max_meter_power_kw=entry.options.get(
+                CONF_MAX_METER_POWER_KW, DEFAULT_MAX_METER_POWER_KW
+            ),
         )
+        self._meter_store = Store(
+            hass, 1, f"goodwe.meter_counters.{entry.entry_id}", atomic_writes=True
+        )
+        self._meter_save_pending = False
+
+    async def _async_setup(self) -> None:
+        """Restore trusted meter counters before the first inverter read."""
+        self.validator.meter_counters = await self._meter_store.async_load() or {}
+
+    @callback
+    def _meter_store_data(self) -> dict[str, dict[str, float]]:
+        """Return the latest counters without postponing every scheduled write."""
+        self._meter_save_pending = False
+        return {key: dict(value) for key, value in self.validator.meter_counters.items()}
+
+    async def async_save_meter_counters(self) -> None:
+        """Flush counters before an integration reload."""
+        if self.validator.meter_counters:
+            await self._meter_store.async_save(self._meter_store_data())
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from the inverter."""
@@ -92,6 +117,12 @@ class GoodweUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             validated_data = self.validator.validate_data(
                 raw_data, self._sensor_metadata
             )
+            if self.validator.enable_validation:
+                for sensor_id, reading in self.validator.meter_counters.items():
+                    validated_data.setdefault(sensor_id, reading["value"])
+                if self.validator.meter_counters and not self._meter_save_pending:
+                    self._meter_save_pending = True
+                    self._meter_store.async_delay_save(self._meter_store_data, 60)
             
             # For rejected values, use last known good values if available
             for sensor_id in raw_data:

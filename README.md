@@ -52,6 +52,24 @@ The validator automatically filters out:
    - Temperatures outside -40°C to +100°C
 3. **Non-monotonic energy counters**: Total energy sensors that suddenly decrease
 
+Grid import/export lifetime counters (`meter_e_total_imp`, `meter_e_total_exp`)
+reject every decrease, including temporary zero readings, and increases exceeding
+the configured maximum grid power multiplied by the time since the last accepted
+reading (plus one 0.01 kWh step for rounding). Rejected readings do not change the
+trusted baseline. Connection outages allow genuine accumulated energy to catch up.
+
+Trusted meter counters are saved through Home Assistant's storage API at most
+once per minute and flushed on a clean shutdown or integration reload. They are
+restored before polling after a restart. A sudden power loss can lose up to one
+minute of saved readings. On first use without saved counters, two consistent
+readings establish the baseline; the sensors stay unknown until then. Without a
+previous trusted baseline, a consistently incorrect initial reading cannot be
+distinguished from a real counter.
+
+A real meter replacement/reset requires explicitly resetting the saved baseline;
+it is never inferred from a drop. This protection does not repair existing energy
+statistics and does not fix the underlying Modbus communication errors.
+
 ### Configuration
 
 Validation is **enabled by default** and can be configured in the integration's options:
@@ -60,10 +78,13 @@ Validation is **enabled by default** and can be configured in the integration's 
 2. Click **Configure** on your GoodWe integration
 3. Adjust validation settings:
    - **Enable sensor value validation**: Turn validation on/off (default: on)
+   - **Maximum grid import/export power (kW)**: Physical grid connection limit,
+     with margin (default: 50 kW). Set this for the whole grid connection, not only
+     the inverter's rated power. This bounds import/export counter growth.
 
 When validation rejects a value, the integration will:
 - Use the last known good value instead
-- Log the rejection
+- Log the rejection at WARNING level
 - Track statistics in diagnostics
 
 ### Monitoring validation
